@@ -168,12 +168,12 @@ function selectAnswer(selected, btn) {
 
   if (correct) {
     if (timeLeft >= 8) {
-    score += 3;
-  } else if (timeLeft >= 4) {
-    score += 2;
-  } else {
-    score += 1;
-  }
+      score += 3;
+    } else if (timeLeft >= 4) {
+      score += 2;
+    } else {
+      score += 1;
+    }
     feedbackDiv.textContent = "¡Correcto! 🎉";
     feedbackDiv.classList.remove("text-red-600");
     feedbackDiv.classList.add("text-green-600");
@@ -231,6 +231,8 @@ function endGame() {
   endScreen.classList.remove("hidden");
   finalScoreSpan.textContent = score;
 }
+
+// Aquí debes incluir el objeto playersData con los jugadores nuevos también
 const playersData = {
   easy: [
     { name: "Lionel Messi", career: ["Barcelona", "PSG", "Inter Miami"], img: "https://upload.wikimedia.org/wikipedia/commons/b/b8/Leo_Messi_20180626.jpg", options: ["Cristiano Ronaldo", "Messi", "Neymar", "Luis Suárez"] },
@@ -242,7 +244,10 @@ const playersData = {
     { name: "Jude Bellingham", career: ["Birmingham", "Dortmund", "Real Madrid"], img: "https://upload.wikimedia.org/wikipedia/commons/6/64/Jude_Bellingham_2023.jpg", options: ["Bellingham", "Mount", "Rice", "Foden"] },
     { name: "Phil Foden", career: ["Manchester City"], img: "https://upload.wikimedia.org/wikipedia/commons/1/1e/Phil_Foden_2021.jpg", options: ["Foden", "Grealish", "Sterling", "Palmer"] },
     { name: "Vinícius Júnior", career: ["Flamengo", "Real Madrid"], img: "https://upload.wikimedia.org/wikipedia/commons/4/47/Vinicius_Junior_2022.jpg", options: ["Vinícius", "Rodrygo", "Neymar", "Hazard"] },
-    { name: "Achraf Hakimi", career: ["Real Madrid", "Dortmund", "Inter", "PSG"], img: "https://upload.wikimedia.org/wikipedia/commons/3/30/Achraf_Hakimi_2022.jpg", options: ["Hakimi", "Mazraoui", "Walker", "Carvajal"] }
+    { name: "Achraf Hakimi", career: ["Real Madrid", "Dortmund", "Inter", "PSG"], img: "https://upload.wikimedia.org/wikipedia/commons/3/30/Achraf_Hakimi_2022.jpg", options: ["Hakimi", "Mazraoui", "Walker", "Carvajal"] },
+    { name: "Mohamed Salah", career: ["El Mokawloon", "Basel", "Chelsea", "Fiorentina", "Roma", "Liverpool"], img: "https://upload.wikimedia.org/wikipedia/commons/3/3e/Mohamed_Salah_2022.jpg", options: ["Salah", "Mané", "Mahrez", "Ziyech"] },
+    { name: "Declan Rice", career: ["West Ham United", "Arsenal"], img: "https://upload.wikimedia.org/wikipedia/commons/1/1a/Declan_Rice_2023.jpg", options: ["Rice", "Phillips", "Mount", "Bellingham"] },
+    { name: "Virgil van Dijk", career: ["Groningen", "Celtic", "Southampton", "Liverpool"], img: "https://upload.wikimedia.org/wikipedia/commons/f/f9/Virgil_van_Dijk_2022.jpg", options: ["van Dijk", "de Ligt", "Aké", "Timber"] }
   ],
   medium: [
     { name: "Luka Modric", career: ["Dinamo Zagreb", "Tottenham", "Real Madrid"], img: "https://upload.wikimedia.org/wikipedia/commons/6/6c/Luka_Modri%C4%87_2018.jpg", options: ["Modric", "Kroos", "Rakitic", "Isco"] },
@@ -254,7 +259,10 @@ const playersData = {
     { name: "Christian Pulisic", career: ["Dortmund", "Chelsea", "AC Milan"], img: "https://upload.wikimedia.org/wikipedia/commons/3/3c/Christian_Pulisic_2019.jpg", options: ["Pulisic", "Reyna", "Weah", "Dest"] },
     { name: "Memphis Depay", career: ["PSV", "Manchester United", "Lyon", "Barcelona", "Atlético Madrid"], img: "https://upload.wikimedia.org/wikipedia/commons/4/41/Memphis_Depay_2021.jpg", options: ["Depay", "Promes", "Babel", "Kluivert"] },
     { name: "Thomas Müller", career: ["Bayern Munich"], img: "https://upload.wikimedia.org/wikipedia/commons/6/60/Thomas_M%C3%BCller_2018.jpg", options: ["Müller", "Kimmich", "Goretzka", "Reus"] },
-    { name: "Andrés Iniesta", career: ["Barcelona", "Vissel Kobe"], img: "https://upload.wikimedia.org/wikipedia/commons/1/1b/Andres_Iniesta_Euro_2012_final_vs_Italy.jpg", options: ["Xavi", "Iniesta", "Silva", "Fabregas"] }
+    { name: "Andrés Iniesta", career: ["Barcelona", "Vissel Kobe"], img: "https://upload.wikimedia.org/wikipedia/commons/1/1b/Andres_Iniesta_Euro_2012_final_vs_Italy.jpg", options: ["Xavi", "Iniesta", "Silva", "Fabregas"] },
+    { name: "Martin Ødegaard", career: ["Strømsgodset", "Real Madrid", "Heerenveen", "Vitesse", "Real Sociedad", "Arsenal"], img: "https://upload.wikimedia.org/wikipedia/commons/0/0b/Martin_Ødegaard_2021.jpg", options: ["Ødegaard", "Haaland", "Isak", "Saka"] },
+    { name: "Sadio Mané", career: ["Metz", "Salzburg", "Southampton", "Liverpool", "Bayern Munich", "Al Nassr"], img: "https://upload.wikimedia.org/wikipedia/commons/9/95/Sadio_Mané_2018.jpg", options: ["Mané", "Salah", "Keita", "Dembélé"] },
+    { name: "Rodri", career: ["Villarreal", "Atlético Madrid", "Manchester City"], img: "https://upload.wikimedia.org/wikipedia/commons/f/f6/Rodri_2019.jpg", options: ["Rodri", "Busquets", "Koke", "Fabian"] }
   ],
   hard: [
     { name: "Zinedine Zidane", career: ["Cannes", "Bordeaux", "Juventus", "Real Madrid"], img: "https://upload.wikimedia.org/wikipedia/commons/3/3e/Zinedine_Zidane_2015.jpg", options: ["Zidane", "Platini", "Henry", "Trezeguet"] },
@@ -266,9 +274,13 @@ const playersData = {
     { name: "Gheorghe Hagi", career: ["Sportul Studențesc", "Steaua", "Real Madrid", "Brescia", "Barcelona", "Galatasaray"], img: "https://upload.wikimedia.org/wikipedia/commons/d/d8/Gheorghe_Hagi_2008.jpg", options: ["Hagi", "Popescu", "Mutu", "Chivu"] },
     { name: "Jari Litmanen", career: ["Reipas", "HJK", "MyPa", "Ajax", "Barcelona", "Liverpool", "Hansa Rostock", "Malmö"], img: "https://upload.wikimedia.org/wikipedia/commons/d/dc/Jari_Litmanen_2008.jpg", options: ["Litmanen", "Hyypiä", "Pukki", "Kallio"] },
     { name: "Ronald Koeman", career: ["Groningen", "Ajax", "PSV", "Barcelona", "Feyenoord"], img: "https://upload.wikimedia.org/wikipedia/commons/f/f1/Ronald_Koeman_2016.jpg", options: ["Koeman", "Blind", "de Boer", "Reiziger"] },
-    { name: "Socrates", career: ["Botafogo-SP", "Corinthians", "Fiorentina", "Flamengo"], img: "https://upload.wikimedia.org/wikipedia/commons/2/2c/Socrates_1986.jpg", options: ["Socrates", "Zico", "Tostao", "Eder"] }
+    { name: "Socrates", career: ["Botafogo-SP", "Corinthians", "Fiorentina", "Flamengo"], img: "https://upload.wikimedia.org/wikipedia/commons/2/2c/Socrates_1986.jpg", options: ["Socrates", "Zico", "Tostao", "Eder"] },
+    { name: "Bernardo Silva", career: ["Benfica", "Monaco", "Manchester City"], img: "https://upload.wikimedia.org/wikipedia/commons/e/e3/Bernardo_Silva_2018.jpg", options: ["Bernardo Silva", "Bruno Fernandes", "Cancelo", "João Félix"] },
+    { name: "Pierre-Emerick Aubameyang", career: ["Milan", "Dijon", "Lille", "Monaco", "Saint-Étienne", "Dortmund", "Arsenal", "Barcelona", "Chelsea", "Marseille"], img: "https://upload.wikimedia.org/wikipedia/commons/a/a8/Pierre-Emerick_Aubameyang_2021.jpg", options: ["Aubameyang", "Lacazette", "Adebayor", "Sanogo"] },
+    { name: "Alexandre Lacazette", career: ["Lyon", "Arsenal", "Lyon"], img: "https://upload.wikimedia.org/wikipedia/commons/f/f7/Alexandre_Lacazette_2020.jpg", options: ["Lacazette", "Giroud", "Benzema", "Gameiro"] }
   ]
 };
 </script>
 </body>
 </html>
+
