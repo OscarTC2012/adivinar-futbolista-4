@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Adivina el Jugador de Fútbol</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center p-4">
+  <div id="app" class="bg-white text-gray-900 rounded-xl shadow-xl w-full max-w-3xl p-6">
+    <div id="start-screen" class="text-center">
+      <h1 class="text-4xl font-bold mb-6">⚽ Adivina el Jugador de Fútbol</h1>
+      <p class="mb-4 text-lg">Selecciona dificultad:</p>
+      <select id="difficulty" class="w-48 p-2 rounded border mb-6 text-center text-lg">
+        <option value="easy">Fácil</option>
+        <option value="medium">Media</option>
+        <option value="hard">Difícil</option>
+        <option value="infinite">Modo Libre (Infinito)</option>
+      </select><br>
+      <button id="start-btn" class="bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded text-lg font-semibold">Comenzar Juego</button>
+      <p class="mt-4 text-gray-600">¡Tienes 10 segundos por pregunta!</p>
+    </div>
+
+    <div id="game-screen" class="hidden">
+      <div class="flex justify-between items-center mb-4 text-sm md:text-base">
+        <div>Pregunta <span id="question-number">1</span>/<span id="total-questions">10</span></div>
+        <div>Tiempo: <span id="timer">10</span>s</div>
+        <div>Puntuación: <span id="score">0</span></div>
+      </div>
+      <div id="career" class="mb-4 text-gray-700 font-medium text-center md:text-left"></div>
+      <div id="question" class="text-2xl font-bold mb-6 text-center md:text-left">¿Quién es este jugador?</div>
+      <div id="options" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6"></div>
+      <img id="player-img" class="mx-auto mb-6 rounded-full w-40 h-40 border-4 border-blue-600 shadow-lg hidden" alt="Foto del jugador">
+      <div id="feedback" class="text-center text-xl font-semibold mb-6"></div>
+      <div class="flex justify-center gap-4">
+        <button id="next-btn" class="bg-green-600 hover:bg-green-700 text-white py-2 px-6 rounded text-lg font-semibold hidden">Siguiente</button>
+      </div>
+    </div>
+
+    <div id="end-screen" class="hidden text-center">
+      <h2 class="text-4xl font-bold mb-6">🎉 ¡Juego terminado!</h2>
+      <p class="text-2xl mb-4">Tu puntuación final es: <span id="final-score"></span></p>
+      <button id="restart-btn" class="bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded text-lg font-semibold">Reiniciar Juego</button>
+    </div>
+  </div>
+
+  <script>
+// === LÓGICA DEL JUEGO ===
+let difficulty = "easy";
+let score = 0;
+let currentQuestionIndex = 0;
+let currentQuestions = [];
+let timer;
+let timeLeft = 10;
+let isAnswered = false;
+let infiniteMode = false;
+let usedPlayers = [];
+let currentPlayer;
+
+const startScreen = document.getElementById("start-screen");
+const gameScreen = document.getElementById("game-screen");
+const endScreen = document.getElementById("end-screen");
+const questionNumberSpan = document.getElementById("question-number");
+const totalQuestionsSpan = document.getElementById("total-questions");
+const timerSpan = document.getElementById("timer");
+const scoreSpan = document.getElementById("score");
+const careerDiv = document.getElementById("career");
+const questionDiv = document.getElementById("question");
+const optionsDiv = document.getElementById("options");
+const playerImg = document.getElementById("player-img");
+const feedbackDiv = document.getElementById("feedback");
+const nextBtn = document.getElementById("next-btn");
+const finalScoreSpan = document.getElementById("final-score");
+
+function normalize(str) {
+  return str.trim().toLowerCase();
+}
+
+function shuffle(array) {
+  let currentIndex = array.length, randomIndex;
+  while (currentIndex !== 0) {
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex--;
+    [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+  }
+  return array;
+}
+
+function loadQuestions() {
+  if (difficulty === "infinite") {
+    infiniteMode = true;
+    usedPlayers = [];
+  } else {
+    infiniteMode = false;
+    currentQuestions = shuffle([...playersData[difficulty]]).slice(0, 10);
+  }
+}
+
+function showQuestion() {
+  isAnswered = false;
+  timeLeft = 10;
+  timerSpan.textContent = timeLeft;
+  feedbackDiv.textContent = "";
+  nextBtn.classList.add("hidden");
+  playerImg.classList.add("hidden");
+  optionsDiv.innerHTML = "";
+  careerDiv.innerHTML = "";
+
+  let player;
+  if (infiniteMode) {
+    const allPlayers = [...playersData.easy, ...playersData.medium, ...playersData.hard];
+    const remaining = allPlayers.filter(p => !usedPlayers.includes(p.name));
+    if (remaining.length === 0) {
+      usedPlayers = [];
+    }
+    player = shuffle([...remaining])[0];
+    usedPlayers.push(player.name);
+  } else {
+    player = currentQuestions[currentQuestionIndex];
+  }
+
+  currentPlayer = player;
+
+  const careerHTML = player.career.map(club => `<li>${club}</li>`).join("");
+  careerDiv.innerHTML = `<strong>Trayectoria:</strong><ul class='list-disc list-inside text-gray-700'>${careerHTML}</ul>`;
+  questionNumberSpan.textContent = infiniteMode ? "∞" : currentQuestionIndex + 1;
+  totalQuestionsSpan.textContent = infiniteMode ? "∞" : 10;
+  scoreSpan.textContent = score;
+  questionDiv.textContent = "¿Quién es este jugador?";
+
+  const opts = shuffle([...player.options]);
+  opts.forEach(option => {
+    const btn = document.createElement("button");
+    btn.textContent = option;
+    btn.className = "bg-gray-200 text-gray-900 rounded py-2 px-4 hover:bg-gray-300 transition w-full font-semibold";
+    btn.onclick = () => selectAnswer(option, btn);
+    optionsDiv.appendChild(btn);
+  });
+
+  clearInterval(timer);
+  timer = setInterval(() => {
+    timeLeft--;
+    timerSpan.textContent = timeLeft;
+    if (timeLeft <= 0 && !isAnswered) {
+      clearInterval(timer);
+      disableOptions();
+      feedbackDiv.textContent = `Incorrecto 😞 La respuesta correcta es: ${currentPlayer.name}`;
+      feedbackDiv.classList.add("text-red-600");
+      playerImg.src = currentPlayer.img;
+      playerImg.alt = currentPlayer.name;
+      playerImg.classList.remove("hidden");
+      nextBtn.classList.remove("hidden");
+    }
+  }, 1000);
+}
+
+function selectAnswer(selected, btn) {
+  if (isAnswered) return;
+  isAnswered = true;
+  clearInterval(timer);
+  disableOptions();
+
+  const selectedNorm = normalize(selected);
+  const nameNorm = normalize(currentPlayer.name);
+  const surname = normalize(currentPlayer.name.split(" ").pop());
+  const nameOnly = normalize(currentPlayer.name.split(" ")[0]);
+  const correct = selectedNorm === nameNorm || selectedNorm === surname || selectedNorm === nameOnly || nameNorm.includes(selectedNorm);
+
+  if (correct) {
+    score++;
+    feedbackDiv.textContent = "¡Correcto! 🎉";
+    feedbackDiv.classList.remove("text-red-600");
+    feedbackDiv.classList.add("text-green-600");
+  } else {
+    feedbackDiv.textContent = `Incorrecto 😞 La respuesta correcta es: ${currentPlayer.name}`;
+    feedbackDiv.classList.remove("text-green-600");
+    feedbackDiv.classList.add("text-red-600");
+  }
+
+  playerImg.src = currentPlayer.img;
+  playerImg.alt = currentPlayer.name;
+  playerImg.classList.remove("hidden");
+  scoreSpan.textContent = score;
+  nextBtn.classList.remove("hidden");
+}
+
+function disableOptions() {
+  const buttons = optionsDiv.querySelectorAll("button");
+  buttons.forEach(btn => {
+    btn.disabled = true;
+    btn.classList.add("opacity-50", "cursor-not-allowed");
+  });
+}
+
+document.getElementById("start-btn").addEventListener("click", () => {
+  difficulty = document.getElementById("difficulty").value;
+  score = 0;
+  currentQuestionIndex = 0;
+  loadQuestions();
+  startScreen.classList.add("hidden");
+  gameScreen.classList.remove("hidden");
+  showQuestion();
+});
+
+document.getElementById("next-btn").addEventListener("click", () => {
+  currentQuestionIndex++;
+  if (!infiniteMode && currentQuestionIndex >= 10) {
+    endGame();
+  } else {
+    showQuestion();
+  }
+});
+
+document.getElementById("restart-btn").addEventListener("click", () => {
+  startScreen.classList.remove("hidden");
+  gameScreen.classList.add("hidden");
+  endScreen.classList.add("hidden");
+  score = 0;
+  currentQuestionIndex = 0;
+});
+
+function endGame() {
+  clearInterval(timer);
+  gameScreen.classList.add("hidden");
+  endScreen.classList.remove("hidden");
+  finalScoreSpan.textContent = score;
+}
+const playersData = {
+  easy: [
+    { name: "Lionel Messi", career: ["Barcelona", "PSG", "Inter Miami"], img: "https://upload.wikimedia.org/wikipedia/commons/b/b8/Leo_Messi_20180626.jpg", options: ["Cristiano Ronaldo", "Messi", "Neymar", "Luis Suárez"] },
+    { name: "Cristiano Ronaldo", career: ["Sporting CP", "Manchester United", "Real Madrid", "Juventus", "Al Nassr"], img: "https://upload.wikimedia.org/wikipedia/commons/8/8c/Cristiano_Ronaldo_2018.jpg", options: ["Cristiano Ronaldo", "Kaka", "Figo", "Pepe"] },
+    { name: "Kylian Mbappé", career: ["Mónaco", "PSG", "Real Madrid"], img: "https://upload.wikimedia.org/wikipedia/commons/f/fd/Kylian_Mbapp%C3%A9_2019.jpg", options: ["Benzema", "Mbappé", "Haaland", "Neymar"] },
+    { name: "Neymar", career: ["Santos", "Barcelona", "PSG"], img: "https://upload.wikimedia.org/wikipedia/commons/1/17/Neymar_2018.jpg", options: ["Neymar", "Messi", "Mbappé", "Coutinho"] },
+    { name: "Erling Haaland", career: ["Molde", "Salzburg", "Dortmund", "Manchester City"], img: "https://upload.wikimedia.org/wikipedia/commons/5/5e/Erling_Haaland_2021.jpg", options: ["Haaland", "Kane", "Lewandowski", "Nunez"] },
+    { name: "Harry Kane", career: ["Tottenham", "Bayern Munich"], img: "https://upload.wikimedia.org/wikipedia/commons/e/e0/Harry_Kane_2021.jpg", options: ["Kane", "Mount", "Vardy", "Rooney"] },
+    { name: "Jude Bellingham", career: ["Birmingham", "Dortmund", "Real Madrid"], img: "https://upload.wikimedia.org/wikipedia/commons/6/64/Jude_Bellingham_2023.jpg", options: ["Bellingham", "Mount", "Rice", "Foden"] },
+    { name: "Phil Foden", career: ["Manchester City"], img: "https://upload.wikimedia.org/wikipedia/commons/1/1e/Phil_Foden_2021.jpg", options: ["Foden", "Grealish", "Sterling", "Palmer"] },
+    { name: "Vinícius Júnior", career: ["Flamengo", "Real Madrid"], img: "https://upload.wikimedia.org/wikipedia/commons/4/47/Vinicius_Junior_2022.jpg", options: ["Vinícius", "Rodrygo", "Neymar", "Hazard"] },
+    { name: "Achraf Hakimi", career: ["Real Madrid", "Dortmund", "Inter", "PSG"], img: "https://upload.wikimedia.org/wikipedia/commons/3/30/Achraf_Hakimi_2022.jpg", options: ["Hakimi", "Mazraoui", "Walker", "Carvajal"] }
+  ],
+  medium: [
+    { name: "Luka Modric", career: ["Dinamo Zagreb", "Tottenham", "Real Madrid"], img: "https://upload.wikimedia.org/wikipedia/commons/6/6c/Luka_Modri%C4%87_2018.jpg", options: ["Modric", "Kroos", "Rakitic", "Isco"] },
+    { name: "Sergio Ramos", career: ["Sevilla", "Real Madrid", "PSG"], img: "https://upload.wikimedia.org/wikipedia/commons/e/e5/Sergio_Ramos_2017.jpg", options: ["Piqué", "Sergio Ramos", "Nacho", "Casillas"] },
+    { name: "Antonio Rüdiger", career: ["Stuttgart", "Roma", "Chelsea", "Real Madrid"], img: "https://upload.wikimedia.org/wikipedia/commons/e/ef/Antonio_R%C3%BCdiger_2018.jpg", options: ["Rüdiger", "Tah", "Boateng", "Hummels"] },
+    { name: "Radamel Falcao", career: ["River Plate", "Porto", "Atlético Madrid", "Monaco", "Galatasaray", "Rayo Vallecano"], img: "https://upload.wikimedia.org/wikipedia/commons/0/0e/Radamel_Falcao_2018.jpg", options: ["Falcao", "James", "Bacca", "Muriel"] },
+    { name: "Marco Reus", career: ["Rot Weiss Ahlen", "Mönchengladbach", "Dortmund"], img: "https://upload.wikimedia.org/wikipedia/commons/2/22/Marco_Reus_2018.jpg", options: ["Reus", "Müller", "Draxler", "Brandt"] },
+    { name: "Ángel Di María", career: ["Rosario Central", "Benfica", "Real Madrid", "Man United", "PSG", "Juventus"], img: "https://upload.wikimedia.org/wikipedia/commons/e/e3/Di_Maria_2018.jpg", options: ["Di María", "Aimar", "Lavezzi", "Tevez"] },
+    { name: "Christian Pulisic", career: ["Dortmund", "Chelsea", "AC Milan"], img: "https://upload.wikimedia.org/wikipedia/commons/3/3c/Christian_Pulisic_2019.jpg", options: ["Pulisic", "Reyna", "Weah", "Dest"] },
+    { name: "Memphis Depay", career: ["PSV", "Manchester United", "Lyon", "Barcelona", "Atlético Madrid"], img: "https://upload.wikimedia.org/wikipedia/commons/4/41/Memphis_Depay_2021.jpg", options: ["Depay", "Promes", "Babel", "Kluivert"] },
+    { name: "Thomas Müller", career: ["Bayern Munich"], img: "https://upload.wikimedia.org/wikipedia/commons/6/60/Thomas_M%C3%BCller_2018.jpg", options: ["Müller", "Kimmich", "Goretzka", "Reus"] },
+    { name: "Andrés Iniesta", career: ["Barcelona", "Vissel Kobe"], img: "https://upload.wikimedia.org/wikipedia/commons/1/1b/Andres_Iniesta_Euro_2012_final_vs_Italy.jpg", options: ["Xavi", "Iniesta", "Silva", "Fabregas"] }
+  ],
+  hard: [
+    { name: "Zinedine Zidane", career: ["Cannes", "Bordeaux", "Juventus", "Real Madrid"], img: "https://upload.wikimedia.org/wikipedia/commons/3/3e/Zinedine_Zidane_2015.jpg", options: ["Zidane", "Platini", "Henry", "Trezeguet"] },
+    { name: "Diego Maradona", career: ["Argentinos Juniors", "Boca Juniors", "Barcelona", "Napoli", "Sevilla", "Newell's"], img: "https://upload.wikimedia.org/wikipedia/commons/2/2e/Diego_Maradona_1986.jpg", options: ["Maradona", "Messi", "Tevez", "Aimar"] },
+    { name: "Roberto Baggio", career: ["Vicenza", "Fiorentina", "Juventus", "Milan", "Bologna", "Inter", "Brescia"], img: "https://upload.wikimedia.org/wikipedia/commons/1/12/Roberto_Baggio.jpg", options: ["Baggio", "Del Piero", "Totti", "Zola"] },
+    { name: "Michael Laudrup", career: ["Lazio", "Juventus", "Barcelona", "Real Madrid"], img: "https://upload.wikimedia.org/wikipedia/commons/6/6b/Michael_Laudrup_2012.jpg", options: ["Laudrup", "Schmeichel", "Poulsen", "Eriksen"] },
+    { name: "Carlos Valderrama", career: ["Unión Magdalena", "Millonarios", "Deportivo Cali", "Montpellier", "Valladolid", "Tampa Bay Mutiny"], img: "https://upload.wikimedia.org/wikipedia/commons/f/f1/Carlos_Valderrama_2010.jpg", options: ["Valderrama", "Falcao", "Asprilla", "Rincón"] },
+    { name: "Clarence Seedorf", career: ["Ajax", "Sampdoria", "Real Madrid", "Inter", "Milan", "Botafogo"], img: "https://upload.wikimedia.org/wikipedia/commons/f/fc/Clarence_Seedorf_2011.jpg", options: ["Seedorf", "Davids", "Kluivert", "Zidane"] },
+    { name: "Gheorghe Hagi", career: ["Sportul Studențesc", "Steaua", "Real Madrid", "Brescia", "Barcelona", "Galatasaray"], img: "https://upload.wikimedia.org/wikipedia/commons/d/d8/Gheorghe_Hagi_2008.jpg", options: ["Hagi", "Popescu", "Mutu", "Chivu"] },
+    { name: "Jari Litmanen", career: ["Reipas", "HJK", "MyPa", "Ajax", "Barcelona", "Liverpool", "Hansa Rostock", "Malmö"], img: "https://upload.wikimedia.org/wikipedia/commons/d/dc/Jari_Litmanen_2008.jpg", options: ["Litmanen", "Hyypiä", "Pukki", "Kallio"] },
+    { name: "Ronald Koeman", career: ["Groningen", "Ajax", "PSV", "Barcelona", "Feyenoord"], img: "https://upload.wikimedia.org/wikipedia/commons/f/f1/Ronald_Koeman_2016.jpg", options: ["Koeman", "Blind", "de Boer", "Reiziger"] },
+    { name: "Socrates", career: ["Botafogo-SP", "Corinthians", "Fiorentina", "Flamengo"], img: "https://upload.wikimedia.org/wikipedia/commons/2/2c/Socrates_1986.jpg", options: ["Socrates", "Zico", "Tostao", "Eder"] }
+  ]
+};
+</script>
+</body>
+</html>
