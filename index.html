@@ -167,7 +167,13 @@ function selectAnswer(selected, btn) {
   const correct = selectedNorm === nameNorm || selectedNorm === surname || selectedNorm === nameOnly || nameNorm.includes(selectedNorm);
 
   if (correct) {
-    score++;
+    if (timeLeft >= 8) {
+    score += 3;
+  } else if (timeLeft >= 4) {
+    score += 2;
+  } else {
+    score += 1;
+  }
     feedbackDiv.textContent = "¡Correcto! 🎉";
     feedbackDiv.classList.remove("text-red-600");
     feedbackDiv.classList.add("text-green-600");
